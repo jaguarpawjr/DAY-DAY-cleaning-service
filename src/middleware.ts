@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getSupabasePublicEnv } from '@/lib/supabase/env';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -8,8 +9,7 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const { supabaseUrl, supabaseAnonKey } = getSupabasePublicEnv();
 
   // If using fake local build keys, allow bypassing to let dev pages render
   if (supabaseAnonKey.includes('fake-anon-key')) {
