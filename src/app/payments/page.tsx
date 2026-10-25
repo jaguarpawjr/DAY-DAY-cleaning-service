@@ -36,7 +36,7 @@ export default async function PaymentsPage() {
               Payment Transactions & Receipts
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Mobile Money, Bank Transfer, and Cash payment records with audit verification.
+              Paystack, Mobile Money, Bank Transfer, and Cash payment records with audit verification.
             </p>
           </div>
           <div className="bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm text-right">
@@ -99,7 +99,13 @@ export default async function PaymentsPage() {
                       </td>
                       <td className="py-3.5 px-4">{formatDate(p.payment_date)}</td>
                       <td className="py-3.5 px-4 uppercase font-bold text-slate-800">
-                        {p.payment_method === 'momo' ? '📱 Mobile Money' : p.payment_method === 'bank_transfer' ? '🏦 Bank Transfer' : '💵 Cash'}
+                        {p.payment_method === 'paystack'
+                          ? '💳 Paystack'
+                          : p.payment_method === 'momo'
+                            ? '📱 Mobile Money'
+                            : p.payment_method === 'bank_transfer'
+                              ? '🏦 Bank Transfer'
+                              : '💵 Cash'}
                       </td>
                       <td className="py-3.5 px-4 font-mono text-slate-600">
                         {p.reference_number || '—'}

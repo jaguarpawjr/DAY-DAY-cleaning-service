@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Package, AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Supplier, ItemCategory, ItemCondition } from '@/types/database';
+import { ItemCategory, ItemCondition } from '@/types/database';
 
 export default function NewInventoryItemPage() {
   const router = useRouter();
@@ -16,29 +16,21 @@ export default function NewInventoryItemPage() {
   const [initialQuantity, setInitialQuantity] = useState('10');
   const [minimumStockLevel, setMinimumStockLevel] = useState('5');
   const [unitCost, setUnitCost] = useState('25');
-  const [supplierId, setSupplierId] = useState('');
   const [storageLocation, setStorageLocation] = useState('Main Warehouse - Spintex');
   const [isReusable, setIsReusable] = useState(false);
   const [condition, setCondition] = useState<ItemCondition>('new');
   const [expiryDate, setExpiryDate] = useState('');
 
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const supabase = createClient();
 
   useEffect(() => {
-    async function loadSuppliers() {
-      const { data } = await supabase.from('suppliers').select('*').eq('is_active', true);
-      if (data) setSuppliers(data as Supplier[]);
-    }
-    loadSuppliers();
-
     // Auto generate SKU recommendation
     const rand = Math.floor(100 + Math.random() * 900);
     setSku(`INV-${rand}`);
-  }, [supabase]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +50,6 @@ export default function NewInventoryItemPage() {
           quantity_on_hand: parseFloat(initialQuantity || '0'),
           minimum_stock_level: parseFloat(minimumStockLevel || '5'),
           unit_cost: parseFloat(unitCost || '0'),
-          supplier_id: supplierId || null,
           storage_location: storageLocation.trim(),
           is_reusable: isReusable,
           equipment_condition: condition,
@@ -234,24 +225,6 @@ export default function NewInventoryItemPage() {
                 placeholder="Main Warehouse - Shelf A"
                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"
               />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Supplier (Optional)
-              </label>
-              <select
-                value={supplierId}
-                onChange={(e) => setSupplierId(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-              >
-                <option value="">-- No Supplier Linked --</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div>

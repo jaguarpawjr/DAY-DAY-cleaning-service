@@ -12,7 +12,6 @@ import {
   CreditCard,
   TrendingUp,
   Package,
-  Clock,
   Banknote,
   BarChart3,
   Settings,
@@ -21,6 +20,7 @@ import {
   Shield,
   User,
   ChevronRight,
+  Globe,
 } from 'lucide-react';
 import { Profile } from '@/types/database';
 
@@ -48,8 +48,9 @@ export default function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
       title: 'Finance & Accounting',
       items: [
         { name: 'Invoices & Billing', href: '/invoices', icon: FileText },
-        { name: 'Payments (MoMo/Bank)', href: '/payments', icon: CreditCard },
+        { name: 'Payments & Paystack', href: '/payments', icon: CreditCard },
         { name: 'Expenses', href: '/expenses', icon: TrendingUp },
+        { name: 'Financial Ledger', href: '/finance/ledger', icon: TrendingUp },
         { name: 'Profit & Loss', href: '/finance/pnl', icon: Banknote },
       ],
     },
@@ -57,9 +58,7 @@ export default function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
       title: 'Logistics & Personnel',
       items: [
         { name: 'Inventory & Supplies', href: '/inventory', icon: Package },
-        { name: 'Suppliers', href: '/suppliers', icon: Users },
         { name: 'Employee Directory', href: '/employees', icon: Users },
-        { name: 'Staff Attendance', href: '/attendance', icon: Clock },
         { name: 'Payroll & Salaries', href: '/payroll', icon: Banknote },
       ],
     },
@@ -69,7 +68,7 @@ export default function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
         { name: 'Contracts', href: '/contracts', icon: FileText },
         { name: 'Complaints & QC', href: '/complaints', icon: MessageSquareWarning },
         { name: 'Business Reports', href: '/reports', icon: BarChart3 },
-        { name: 'Company Settings', href: '/settings', icon: Settings },
+        { name: 'Homepage & Website Settings', href: '/settings/homepage', icon: Globe },
       ],
     },
   ];
@@ -79,9 +78,9 @@ export default function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
       title: 'Field Operations',
       items: [
         { name: 'My Assigned Jobs', href: '/dashboard', icon: Briefcase },
-        { name: 'Clock In / Out', href: '/attendance', icon: Clock },
         { name: 'Submit Expense', href: '/expenses/new', icon: TrendingUp },
         { name: 'My Payslips', href: '/payroll/my-payslips', icon: Banknote },
+        { name: 'My Payment History', href: '/my-payments', icon: CreditCard },
         { name: 'My Profile', href: '/profile', icon: User },
       ],
     },

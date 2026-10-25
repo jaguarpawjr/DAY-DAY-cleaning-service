@@ -10,7 +10,7 @@ export type UserRole = 'admin' | 'employee';
 export type ClientType = 'residential' | 'commercial' | 'corporate';
 export type BookingStatus = 'pending' | 'approved' | 'rejected' | 'rescheduled' | 'cancelled';
 export type JobStatus = 'scheduled' | 'assigned' | 'in_progress' | 'awaiting_inspection' | 'completed' | 'cancelled';
-export type PaymentMethod = 'momo' | 'bank_transfer' | 'cash';
+export type PaymentMethod = 'momo' | 'bank_transfer' | 'cash' | 'paystack';
 export type PaymentStatus = 'pending_verification' | 'verified' | 'rejected';
 export type InvoiceStatus = 'draft' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled';
 export type ExpenseCategory =
@@ -30,7 +30,6 @@ export type ExpenseStatus = 'pending' | 'approved' | 'rejected' | 'paid';
 export type ItemCategory = 'cleaning_chemical' | 'consumable' | 'tool' | 'equipment' | 'protective_gear';
 export type ItemCondition = 'new' | 'good' | 'fair' | 'needs_repair' | 'damaged';
 export type StockMovementType = 'purchase' | 'issue_to_job' | 'return' | 'damaged' | 'lost' | 'adjustment';
-export type AttendanceStatus = 'present' | 'late' | 'half_day' | 'absent' | 'on_leave';
 export type LeaveType = 'annual' | 'sick' | 'emergency' | 'unpaid';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected';
 export type PayrollStatus = 'draft' | 'review' | 'approved' | 'paid';
@@ -56,6 +55,12 @@ export interface CompanySettings {
   bank_account_name?: string | null;
   bank_account_number?: string | null;
   bank_branch?: string | null;
+  whatsapp?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  homepage_heading?: string | null;
+  homepage_welcome?: string | null;
+  homepage_footer?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -105,6 +110,12 @@ export interface Employee {
   base_salary: number;
   allowances: number;
   documents?: Json;
+  momo_number?: string | null;
+  momo_provider?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_code?: string | null;
+  paystack_recipient_code?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -118,6 +129,24 @@ export interface Service {
   duration_hours: number;
   is_active: boolean;
   icon_name?: string | null;
+  created_at: string;
+  updated_at: string;
+  pricing_type?: 'fixed' | 'starting' | 'hourly' | 'quotation';
+  promotional_price?: number | null;
+  promotion_expires_at?: string | null;
+  image_url?: string | null;
+  sort_order?: number;
+}
+
+export interface ServiceArea {
+  id: string;
+  name: string;
+  region: string;
+  description?: string | null;
+  travel_fee: number;
+  available_service_ids: string[];
+  is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -245,21 +274,14 @@ export interface Payment {
   verified_at?: string | null;
   created_at: string;
   updated_at: string;
+  booking_id?: string | null;
+  paystack_reference?: string | null;
+  paystack_status?: string | null;
+  paystack_fee?: number | null;
+  paystack_channel?: string | null;
+  paystack_paid_at?: string | null;
   client?: Client;
   invoice?: Invoice;
-}
-
-export interface Supplier {
-  id: string;
-  name: string;
-  contact_person?: string | null;
-  phone: string;
-  email?: string | null;
-  address?: string | null;
-  supplies_provided?: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Expense {
@@ -269,7 +291,6 @@ export interface Expense {
   category: ExpenseCategory;
   amount: number;
   date_incurred: string;
-  supplier_id?: string | null;
   payment_method: PaymentMethod;
   receipt_url?: string | null;
   submitted_by?: string | null;
@@ -279,7 +300,6 @@ export interface Expense {
   notes?: string | null;
   created_at: string;
   updated_at: string;
-  supplier?: Supplier;
   submitter?: Profile;
 }
 
@@ -292,7 +312,6 @@ export interface InventoryItem {
   quantity_on_hand: number;
   minimum_stock_level: number;
   unit_cost: number;
-  supplier_id?: string | null;
   storage_location?: string | null;
   is_reusable: boolean;
   equipment_condition: ItemCondition;
@@ -301,7 +320,6 @@ export interface InventoryItem {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  supplier?: Supplier;
 }
 
 export interface StockMovement {
@@ -318,21 +336,6 @@ export interface StockMovement {
   recorded_by?: string | null;
   created_at: string;
   item?: InventoryItem;
-}
-
-export interface Attendance {
-  id: string;
-  employee_id: string;
-  work_date: string;
-  clock_in: string;
-  clock_out?: string | null;
-  status: AttendanceStatus;
-  location_lat?: number | null;
-  location_lng?: number | null;
-  notes?: string | null;
-  created_at: string;
-  updated_at: string;
-  employee?: Employee;
 }
 
 export interface LeaveRequest {
@@ -383,9 +386,44 @@ export interface PayrollItem {
   payment_method: PaymentMethod;
   payment_ref?: string | null;
   payment_status: string;
+  paystack_transfer_code?: string | null;
+  paystack_transfer_reference?: string | null;
+  transfer_status?: string | null;
   notes?: string | null;
   created_at: string;
   employee?: Employee;
+}
+
+export interface HomepageRevision {
+  id: string;
+  revision_number: number;
+  status: 'draft' | 'published' | 'archived';
+  company_settings: Record<string, any>;
+  service_ids: string[];
+  service_area_ids: string[];
+  draft_snapshot?: {
+    settings?: Record<string, any>;
+    services?: Partial<Service>[];
+    areas?: Partial<ServiceArea>[];
+  } | null;
+  edited_by?: string | null;
+  published_by?: string | null;
+  published_at?: string | null;
+  created_at: string;
+}
+
+export interface PaystackSettlement {
+  id: string;
+  settlement_id: string;
+  settlement_date: string;
+  total_amount: number;
+  net_amount: number;
+  status: string;
+  reconciled: boolean;
+  reconciled_at?: string | null;
+  ledger_entry_id?: string | null;
+  raw_payload?: Json;
+  created_at: string;
 }
 
 export interface Contract {

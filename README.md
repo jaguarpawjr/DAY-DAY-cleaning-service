@@ -155,9 +155,8 @@ npm start
 ### 3. Field Cleaner Job Execution Flow
 1. Assigned employee logs in at `/login`.
 2. Dashboard displays their assigned jobs for today with location and start time.
-3. Employee clicks **Clock In** at `/attendance`.
-4. Employee arrives at the site, marks status **In Progress**, inputs actual materials used, uploads before-and-after cleaning photos, and marks the job **Completed**.
-5. Customer rating and feedback are saved to the permanent quality record.
+3. Employee arrives at the site, marks status **In Progress**, inputs actual materials used, uploads before-and-after cleaning photos, and marks the job **Completed**.
+4. Customer rating and feedback are saved to the permanent quality record.
 
 ### 4. Invoicing & Payment Verification Flow
 1. Admin visits the job page and clicks **Generate Invoice**.
@@ -205,9 +204,7 @@ Cleaning Service/
     │   │   │   ├── payments/          # Payment recording & verification
     │   │   │   ├── payroll/           # Payroll generation & approval
     │   │   │   └── settings/          # Company settings update
-    │   │   ├── attendance/clock/      # Shift clock in / clock out
     │   │   └── jobs/update/           # Field job status & photo upload
-    │   ├── attendance/                # Time clock terminal & records
     │   ├── book/                      # Public customer booking portal
     │   ├── bookings/                  # Admin booking review & approval
     │   ├── clients/                   # Customer CRM directory & profiles

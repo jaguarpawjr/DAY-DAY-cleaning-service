@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, TrendingUp, AlertCircle, Upload } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Supplier, ExpenseCategory } from '@/types/database';
+import { ExpenseCategory } from '@/types/database';
 
 export default function NewExpensePage() {
   const router = useRouter();
@@ -14,22 +14,12 @@ export default function NewExpensePage() {
   const [amount, setAmount] = useState('');
   const [dateIncurred, setDateIncurred] = useState(new Date().toISOString().split('T')[0]);
   const [paymentMethod, setPaymentMethod] = useState<'momo' | 'bank_transfer' | 'cash'>('momo');
-  const [supplierId, setSupplierId] = useState('');
   const [receiptUrl, setReceiptUrl] = useState('');
   const [notes, setNotes] = useState('');
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const supabase = createClient();
-
-  useEffect(() => {
-    async function loadSuppliers() {
-      const { data } = await supabase.from('suppliers').select('*').eq('is_active', true);
-      if (data) setSuppliers(data as Supplier[]);
-    }
-    loadSuppliers();
-  }, [supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +57,6 @@ export default function NewExpensePage() {
           amount: numAmount,
           date_incurred: dateIncurred,
           payment_method: paymentMethod,
-          supplier_id: supplierId || null,
           receipt_url: receiptUrl.trim() || null,
           submitted_by: currentUserId || null,
           approved_by: isCurrentUserAdmin ? currentUserId : null,
@@ -191,24 +180,6 @@ export default function NewExpensePage() {
                 <option value="momo">Mobile Money (MTN / Telecel)</option>
                 <option value="cash">Cash Out of Pocket / Petty Cash</option>
                 <option value="bank_transfer">Company Bank Transfer</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Supplier / Vendor (Optional)
-              </label>
-              <select
-                value={supplierId}
-                onChange={(e) => setSupplierId(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">-- No Specific Supplier --</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
               </select>
             </div>
 

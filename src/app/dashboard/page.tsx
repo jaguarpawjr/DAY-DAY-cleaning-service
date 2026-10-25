@@ -42,7 +42,7 @@ export default async function DashboardPage() {
         complaintsRes,
       ] = await Promise.all([
         supabase.from('invoices').select('*, client:clients(*)').order('created_at', { ascending: false }),
-        supabase.from('expenses').select('*, supplier:suppliers(*)').order('date_incurred', { ascending: false }),
+        supabase.from('expenses').select('*').order('date_incurred', { ascending: false }),
         supabase.from('jobs').select('*, service:services(*), client:clients(*)').order('scheduled_date', { ascending: false }),
         supabase.from('bookings').select('*, service:services(*)').order('created_at', { ascending: false }),
         supabase.from('clients').select('*'),

@@ -809,9 +809,111 @@ ALTER TABLE quality_inspections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
--- 5.1 company_settings: Anyone authenticated or public can read branding, only admin can update
-CREATE POLICY "Public read company settings" ON company_settings FOR SELECT USING (true);
-CREATE POLICY "Admin update company settings" ON company_settings FOR ALL USING (is_admin());
+-- Re-running an interrupted initialization must not fail on policies that
+-- were created before the previous attempt stopped. These are the policies
+-- defined by this migration; they are recreated below with the same names
+-- and definitions.
+DO $$
+DECLARE
+  existing_policy RECORD;
+BEGIN
+  FOR existing_policy IN
+    SELECT schemaname, tablename, policyname
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND (tablename, policyname) IN (
+        ('company_settings', 'Public read company settings'),
+        ('company_settings', 'Admin update company settings'),
+        ('profiles', 'Admin full access profiles'),
+        ('profiles', 'Users read own profile'),
+        ('profiles', 'Users update own profile'),
+        ('clients', 'Admin full access clients'),
+        ('clients', 'Employee view assigned job clients'),
+        ('employees', 'Admin full access employees'),
+        ('employees', 'Employee read own employee record'),
+        ('services', 'Public view active services'),
+        ('services', 'Admin full access services'),
+        ('bookings', 'Admin full access bookings'),
+        ('bookings', 'Public submit bookings'),
+        ('bookings', 'Public read booking by reference'),
+        ('jobs', 'Admin full access jobs'),
+        ('jobs', 'Employee view assigned jobs'),
+        ('jobs', 'Employee update assigned jobs'),
+        ('job_workers', 'Admin full access job_workers'),
+        ('job_workers', 'Employee view own assignments'),
+        ('job_photos', 'Admin full access job_photos'),
+        ('job_photos', 'Employee view assigned job photos'),
+        ('job_photos', 'Employee upload job photos'),
+        ('invoices', 'Admin full access invoices'),
+        ('invoice_items', 'Admin full access invoice_items'),
+        ('payments', 'Admin full access payments'),
+        ('suppliers', 'Admin full access suppliers'),
+        ('expenses', 'Admin full access expenses'),
+        ('expenses', 'Employee view own expenses'),
+        ('expenses', 'Employee submit expense'),
+        ('inventory_items', 'Admin full access inventory'),
+        ('inventory_items', 'Employee view inventory items'),
+        ('stock_movements', 'Admin full access stock movements'),
+        ('purchase_orders', 'Admin full access purchase orders'),
+        ('purchase_order_items', 'Admin full access purchase order items'),
+        ('attendance', 'Admin full access attendance'),
+        ('attendance', 'Employee view own attendance'),
+        ('attendance', 'Employee clock in'),
+        ('attendance', 'Employee clock out'),
+        ('leave_requests', 'Admin full access leave_requests'),
+        ('leave_requests', 'Employee view own leave requests'),
+        ('leave_requests', 'Employee submit leave request'),
+        ('payroll', 'Admin full access payroll'),
+        ('payroll_items', 'Admin full access payroll items'),
+        ('payroll_items', 'Employee view own payslip'),
+        ('contracts', 'Admin full access contracts'),
+        ('complaints', 'Admin full access complaints'),
+        ('complaints', 'Public submit complaint'),
+        ('quality_inspections', 'Admin full access inspections'),
+        ('notifications', 'Admin full access notifications'),
+        ('notifications', 'User view own notifications'),
+        ('notifications', 'User mark notification read'),
+        ('audit_logs', 'Admin view audit logs')
+      )
+  LOOP
+    EXECUTE format(
+      'DROP POLICY IF EXISTS %I ON %I.%I',
+      existing_policy.policyname,
+      existing_policy.schemaname,
+      existing_policy.tablename
+    );
+  END LOOP;
+END
+$$;
+
+-- 5.1 company_settings: Anyone authenticated or public can read branding, only admin can update.
+-- Keep existing policies when this migration is re-run against a partially
+-- initialized database.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'company_settings'
+      AND policyname = 'Public read company settings'
+  ) THEN
+    CREATE POLICY "Public read company settings"
+      ON company_settings FOR SELECT USING (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'company_settings'
+      AND policyname = 'Admin update company settings'
+  ) THEN
+    CREATE POLICY "Admin update company settings"
+      ON company_settings FOR ALL USING (is_admin());
+  END IF;
+END
+$$;
 
 -- 5.2 profiles:
 -- Admin has full access
