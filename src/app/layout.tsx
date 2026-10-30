@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = {
-  title: "DAYDAY Management System | DAYDAY SPARKLE AND SHINE CLEANING SERVICE",
-  description: "Satisfaction Guaranteed. Enterprise business operations, field cleaning management, and accounting system.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createClient();
+  const { data: settings } = await supabase
+    .from('company_settings')
+    .select('company_name, tagline')
+    .maybeSingle();
+
+  return {
+    title: settings?.company_name || 'Cleaning Service',
+    description: settings?.tagline || 'Professional cleaning services.',
+  };
+}
 
 export default function RootLayout({
   children,

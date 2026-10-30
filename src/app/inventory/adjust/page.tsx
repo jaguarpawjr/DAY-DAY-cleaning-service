@@ -178,7 +178,7 @@ function StockAdjustContent() {
               <textarea
                 rows={2}
                 required
-                placeholder="Reason for issuance, damages report, or supplier intake notes..."
+                placeholder="Reason for issuance, damages report, or stock intake notes..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"

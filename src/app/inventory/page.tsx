@@ -20,7 +20,7 @@ export default async function InventoryPage() {
 
   const { data: itemsData } = await supabase
     .from('inventory_items')
-    .select('*, supplier:suppliers(*)')
+    .select('*')
     .order('name');
 
   const items = (itemsData as InventoryItem[]) || [];

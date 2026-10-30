@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CreditCard, CheckCircle2, Clock, DollarSign, FileText } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Payment } from '@/types/database';
+import VerifyPaystackButton from './VerifyPaystackButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,7 @@ export default async function PaymentsPage() {
               Payment Transactions & Receipts
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Mobile Money, Bank Transfer, and Cash payment records with audit verification.
+              Paystack, Mobile Money, Bank Transfer, and Cash payment records with audit verification.
             </p>
           </div>
           <div className="bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm text-right">
@@ -99,7 +100,13 @@ export default async function PaymentsPage() {
                       </td>
                       <td className="py-3.5 px-4">{formatDate(p.payment_date)}</td>
                       <td className="py-3.5 px-4 uppercase font-bold text-slate-800">
-                        {p.payment_method === 'momo' ? '📱 Mobile Money' : p.payment_method === 'bank_transfer' ? '🏦 Bank Transfer' : '💵 Cash'}
+                        {p.payment_method === 'paystack'
+                          ? '💳 Paystack'
+                          : p.payment_method === 'momo'
+                            ? '📱 Mobile Money'
+                            : p.payment_method === 'bank_transfer'
+                              ? '🏦 Bank Transfer'
+                              : '💵 Cash'}
                       </td>
                       <td className="py-3.5 px-4 font-mono text-slate-600">
                         {p.reference_number || '—'}
@@ -108,16 +115,23 @@ export default async function PaymentsPage() {
                         {formatCurrency(p.amount)}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold capitalize ${
-                            p.status === 'verified'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          {p.status.replace('_', ' ')}
-                        </span>
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold capitalize ${
+                              p.status === 'verified'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            {p.status.replace('_', ' ')}
+                          </span>
+                          {p.payment_method === 'paystack' && p.status !== 'verified' && (p as Payment & { paystack_reference?: string }).paystack_reference && (
+                            <VerifyPaystackButton
+                              reference={(p as Payment & { paystack_reference: string }).paystack_reference}
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

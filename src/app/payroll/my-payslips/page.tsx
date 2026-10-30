@@ -2,7 +2,8 @@ import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Banknote, FileText, CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import { Banknote, FileText, CheckCircle2, Clock } from 'lucide-react';
+import Brand from '@/components/branding/Brand';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { PayrollItem } from '@/types/database';
 
@@ -66,17 +67,11 @@ export default async function MyPayslipsPage() {
                 {/* Payslip Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white">
-                      <Sparkles className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h2 className="text-base font-extrabold text-slate-900">
-                        DAYDAY SPARKLE AND SHINE
-                      </h2>
-                      <p className="text-xs text-blue-600 font-semibold italic">
-                        “Satisfaction Guaranteed.”
-                      </p>
-                    </div>
+                    <Brand
+                      iconClassName="h-10 w-10 rounded-xl"
+                      nameClassName="text-base font-extrabold text-slate-900"
+                      taglineClassName="text-xs text-blue-600 font-semibold italic"
+                    />
                   </div>
                   <div className="text-right">
                     <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">

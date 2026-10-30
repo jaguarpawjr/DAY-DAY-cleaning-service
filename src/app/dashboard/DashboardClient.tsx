@@ -9,7 +9,6 @@ import {
   Users,
   Briefcase,
   AlertTriangle,
-  Clock,
   Sparkles,
   ArrowUpRight,
   ArrowDownRight,
@@ -51,7 +50,6 @@ interface DashboardClientProps {
     pendingExpensesCount: number;
     unresolvedComplaintsCount: number;
     myJobs?: Job[];
-    todayAttendance?: any;
   };
 }
 
@@ -198,17 +196,10 @@ export default function DashboardClient({ profile, initialData }: DashboardClien
                 Welcome, {profile.full_name}!
               </h1>
               <p className="text-blue-100 text-sm mt-1">
-                Your assigned cleaning schedule and daily tasks. “Satisfaction Guaranteed.”
+                Your assigned cleaning schedule and daily tasks.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link
-                href="/attendance"
-                className="px-4 py-2.5 bg-white text-blue-700 hover:bg-blue-50 font-bold rounded-xl text-xs shadow-md transition-colors flex items-center gap-2"
-              >
-                <Clock className="w-4 h-4 text-blue-600" />
-                <span>Clock In / Out</span>
-              </Link>
               <Link
                 href="/expenses/new"
                 className="px-4 py-2.5 bg-blue-600/80 hover:bg-blue-600 text-white font-semibold rounded-xl text-xs border border-blue-400/30 transition-colors flex items-center gap-2"

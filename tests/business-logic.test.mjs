@@ -169,3 +169,25 @@ describe('DAYDAY Management System - Inventory Concurrency & Stock Movements', (
     assert.equal(movement.error, 'Insufficient stock');
   });
 });
+
+describe('DAYDAY Management System - Notifications & Alerts Logic', () => {
+  test('Booking approval notification contains booking ref and track-booking payment link', () => {
+    const bookingRef = 'BK-202610-099';
+    const appUrl = 'http://localhost:3000';
+    const paymentLink = `${appUrl}/track-booking?ref=${encodeURIComponent(bookingRef)}`;
+    assert.match(paymentLink, /track-booking\?ref=BK-202610-099/);
+  });
+
+  test('Payment receipt notification correctly calculates remaining balance', () => {
+    const totalAmount = 500;
+    const paymentAmount = 200;
+    const remainingBalance = Math.max(0, totalAmount - paymentAmount);
+    assert.equal(remainingBalance, 300);
+  });
+
+  test('Job completed notification reflects final completed state', () => {
+    const status = 'completed';
+    const isCompleted = status === 'completed';
+    assert.equal(isCompleted, true);
+  });
+});

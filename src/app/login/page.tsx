@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Sparkles, Lock, Mail, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import Brand from '@/components/branding/Brand';
 import { createClient } from '@/lib/supabase/client';
 
 function LoginContent() {
@@ -56,15 +57,12 @@ function LoginContent() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Top Header / Branding */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/30 mb-4">
-          <Sparkles className="w-9 h-9" />
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          DAYDAY SPARKLE & SHINE
-        </h2>
-        <p className="mt-1 text-sm font-medium text-blue-600 uppercase tracking-widest">
-          “Satisfaction Guaranteed.”
-        </p>
+        <Brand
+          className="inline-flex flex-col gap-2 mb-4"
+          iconClassName="h-16 w-16 rounded-2xl"
+          nameClassName="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight"
+          taglineClassName="text-sm font-medium text-blue-600 uppercase tracking-widest"
+        />
         <p className="mt-2 text-xs text-slate-500 font-medium">
           Management & Operations System • Accra, Ghana
         </p>
@@ -209,7 +207,7 @@ function LoginContent() {
             </Link>
           </p>
           <p className="text-xs text-slate-400">
-            &copy; {new Date().getFullYear()} DAYDAY SPARKLE AND SHINE CLEANING SERVICE. All rights reserved.
+            &copy; {new Date().getFullYear()} All rights reserved.
           </p>
         </div>
       </div>

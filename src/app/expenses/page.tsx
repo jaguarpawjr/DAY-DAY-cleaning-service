@@ -21,7 +21,7 @@ export default async function ExpensesPage() {
 
   let query = supabase
     .from('expenses')
-    .select('*, supplier:suppliers(*)')
+    .select('*')
     .order('date_incurred', { ascending: false });
 
   // If employee, view only own submitted expenses
@@ -118,9 +118,6 @@ export default async function ExpensesPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <p className="font-bold text-slate-900">{exp.description}</p>
-                        {exp.supplier && (
-                          <p className="text-[11px] text-slate-400">Supplier: {exp.supplier.name}</p>
-                        )}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="capitalize px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">

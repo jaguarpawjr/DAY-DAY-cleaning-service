@@ -16,19 +16,22 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { formatCurrency } from '@/lib/utils';
-import { Service } from '@/types/database';
+import { CompanySettings, Service, ServiceArea } from '@/types/database';
+import HomepageBookingForm from './HomepageBookingForm';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const { data: servicesData } = await supabase
-    .from('services')
-    .select('*')
-    .eq('is_active', true)
-    .order('base_price', { ascending: true });
+  const [{ data: servicesData }, { data: settingsData }, { data: areasData }] = await Promise.all([
+    supabase.from('services').select('*').eq('is_active', true).order('sort_order').order('base_price'),
+    supabase.from('company_settings').select('*').maybeSingle(),
+    supabase.from('service_areas').select('*').eq('is_active', true).order('sort_order').order('name'),
+  ]);
 
   const services = (servicesData as Service[]) || [];
+  const settings = settingsData as CompanySettings | null;
+  const areas = (areasData as ServiceArea[]) || [];
 
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col">
@@ -37,13 +40,13 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-blue-400" /> +233 24 555 8899
+              <Phone className="w-3.5 h-3.5 text-blue-400" /> {settings?.phone || '+233 24 555 8899'}
             </span>
             <span className="flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-blue-400" /> info@daydaysparkle.com
+              <Mail className="w-3.5 h-3.5 text-blue-400" /> {settings?.email || 'info@daydaysparkle.com'}
             </span>
             <span className="hidden md:flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-blue-400" /> Accra, Ghana
+              <MapPin className="w-3.5 h-3.5 text-blue-400" />  Ghana
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -64,15 +67,23 @@ export default async function HomePage() {
       <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-100 px-4 sm:px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-              <Sparkles className="w-6 h-6" />
-            </div>
+            {settings?.logo_url ? (
+              <img
+                src={settings.logo_url}
+                alt={settings?.company_name || 'Company logo'}
+                className="h-11 w-11 max-h-11 max-w-11 shrink-0 rounded-2xl border border-slate-200 bg-white p-0.5 object-contain shadow-sm"
+              />
+            ) : (
+              <div className="w-11 h-11 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                <Sparkles className="w-6 h-6" />
+              </div>
+            )}
             <div>
               <span className="font-extrabold text-lg text-slate-900 tracking-tight leading-none block">
-                DAYDAY
+                {settings?.company_name || ''}
               </span>
               <span className="text-[11px] font-bold text-blue-600 tracking-wider block">
-                SPARKLE & SHINE
+                {settings?.tagline || ''}
               </span>
             </div>
           </Link>
@@ -104,91 +115,35 @@ export default async function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/60 to-white py-16 sm:py-24 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide">
-              <Award className="w-4 h-4 text-blue-600" /> Ghana’s Trusted Cleaning Professionals
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-              Spotless Clean Spaces.{' '}
-              <span className="text-blue-600 block">Satisfaction Guaranteed.</span>
-            </h1>
-            <p className="text-slate-600 text-base sm:text-lg max-w-xl leading-relaxed">
-              From residential homes and executive corporate offices to post-construction deep cleans, DAYDAY delivers uncompromised hygiene, trained personnel, and vetted eco-friendly supplies across Greater Accra.
-            </p>
+      <div className="border-b border-blue-100 bg-blue-50 px-4 py-3 sm:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+          <p className="text-xs font-semibold text-slate-600">
+            Already booked with us? Check your booking status anytime.
+          </p>
+          <Link
+            href="/track-booking"
+            className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
+            Track Booking
+          </Link>
+        </div>
+      </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <Link
-                href="/book"
-                className="px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-xl shadow-blue-600/30 transition-all text-center flex items-center justify-center gap-2"
-              >
-                <span>Book Instant Cleaning</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/track-booking"
-                className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm transition-all text-center"
-              >
-                Track Existing Booking
-              </Link>
-            </div>
-
-            {/* Trust Badges */}
-            <div className="pt-6 border-t border-slate-200/60 grid grid-cols-3 gap-4">
-              <div>
-                <p className="text-2xl font-extrabold text-slate-900">100%</p>
-                <p className="text-xs text-slate-500 font-medium">Satisfaction Guaranteed</p>
-              </div>
-              <div>
-                <p className="text-2xl font-extrabold text-slate-900">GH₵0</p>
-                <p className="text-xs text-slate-500 font-medium">Hidden Charges</p>
-              </div>
-              <div>
-                <p className="text-2xl font-extrabold text-slate-900">5.0 ★</p>
-                <p className="text-xs text-slate-500 font-medium">Customer Rating</p>
-              </div>
-            </div>
+      {/* Homepage hero: editorial laundry imagery paired with the live booking flow. */}
+      <section className="overflow-hidden bg-blue-50 px-4 py-10 sm:px-8 sm:py-14 lg:py-16">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
+          <div className="max-w-xl">
+            <div className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-700"><span className="h-2 w-2 rounded-full bg-blue-400" /> Fresh spaces, made simple</div>
+            <h1 className="max-w-lg font-serif text-5xl font-bold leading-[0.98] tracking-[-0.03em] text-slate-900 sm:text-6xl lg:text-[4.9rem]">A cleaner home, without the chore.</h1>
+            <p className="mt-6 max-w-md text-base leading-7 text-slate-600 sm:text-lg">{settings?.homepage_welcome || 'Professional cleaning, picked up and delivered with care across Greater Accra.'}</p>
+            <div className="mt-7 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-600"><span className="rounded-full bg-white px-3 py-2 shadow-sm">Satisfaction guaranteed</span><span className="rounded-full bg-white px-3 py-2 shadow-sm">Local team, trusted service</span></div>
           </div>
 
-          {/* Visual Showcase Card */}
-          <div className="relative">
-            <div className="w-full bg-gradient-to-tr from-blue-600 to-indigo-700 rounded-3xl p-8 sm:p-10 text-white shadow-2xl relative overflow-hidden">
-              <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="inline-flex p-3 rounded-2xl bg-white/15 backdrop-blur mb-6">
-                <Sparkles className="w-8 h-8 text-yellow-300" />
-              </div>
-
-              <h3 className="text-2xl font-bold mb-3">Professional Cleaning Packages</h3>
-              <p className="text-blue-100 text-sm mb-6 leading-relaxed">
-                Standardized pricing tailored for Ghanaian apartments, compound houses, corporate offices, and estate villas.
-              </p>
-
-              <div className="space-y-3">
-                <div className="bg-white/10 rounded-xl p-3.5 flex items-center justify-between backdrop-blur">
-                  <span className="text-sm font-semibold">Residential Clean</span>
-                  <span className="text-sm font-bold bg-white text-blue-900 px-2.5 py-1 rounded-lg">From GH₵250</span>
-                </div>
-                <div className="bg-white/10 rounded-xl p-3.5 flex items-center justify-between backdrop-blur">
-                  <span className="text-sm font-semibold">Office & Commercial</span>
-                  <span className="text-sm font-bold bg-white text-blue-900 px-2.5 py-1 rounded-lg">From GH₵450</span>
-                </div>
-                <div className="bg-white/10 rounded-xl p-3.5 flex items-center justify-between backdrop-blur">
-                  <span className="text-sm font-semibold">Deep Clean & Sanitization</span>
-                  <span className="text-sm font-bold bg-white text-blue-900 px-2.5 py-1 rounded-lg">From GH₵600</span>
-                </div>
-                <div className="bg-white/10 rounded-xl p-3.5 flex items-center justify-between backdrop-blur">
-                  <span className="text-sm font-semibold">Post-Construction Scrub</span>
-                  <span className="text-sm font-bold bg-white text-blue-900 px-2.5 py-1 rounded-lg">From GH₵850</span>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-4 border-t border-white/20 text-xs text-blue-100 flex items-center justify-between">
-                <span>Payment: MoMo, Bank, Cash</span>
-                <span className="font-bold underline">Same-Day Available</span>
-              </div>
-            </div>
+          <div className="relative min-h-[510px] lg:min-h-[590px]">
+            <img src="https://www.rbcclean.com/wp-content/uploads/2025/03/shutterstock_2453839265-1.jpg" alt="Professional cleaner preparing a bright home" className="absolute inset-0 h-full w-full rounded-[2.5rem] object-cover" />
+            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-t from-slate-900/35 via-transparent to-transparent" />
+            <div className="relative mt-[27rem] px-4 pb-5 sm:mt-[29rem] sm:px-6 lg:absolute lg:-bottom-5 lg:left-auto lg:right-6 lg:mt-0 lg:w-[min(100%-3rem,390px)] lg:px-0 lg:pb-0"><HomepageBookingForm initialServices={services} /></div>
+            <div className="absolute left-5 top-5 hidden rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-slate-900 shadow-lg backdrop-blur sm:block">Carefully cleaned. Ready when you are.</div>
           </div>
         </div>
       </section>
@@ -215,9 +170,17 @@ export default async function HomePage() {
                 className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
-                    <Sparkles className="w-6 h-6" />
-                  </div>
+                  {svc.image_url ? (
+                    <img
+                      src={svc.image_url}
+                      alt={svc.name}
+                      className="w-full h-32 rounded-xl object-cover mb-4 border border-slate-100 shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                  )}
                   <h3 className="text-base font-bold text-slate-900 mb-2">{svc.name}</h3>
                   <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 mb-4">
                     {svc.description}
@@ -228,7 +191,15 @@ export default async function HomePage() {
                   <div className="flex items-baseline justify-between mb-4">
                     <span className="text-xs text-slate-400 font-medium">Starting at</span>
                     <span className="text-lg font-bold text-blue-600">
-                      {formatCurrency(svc.base_price)}
+                      {svc.pricing_type === 'quotation'
+                        ? 'Request quote'
+                        : formatCurrency(
+                            svc.promotional_price &&
+                              (!svc.promotion_expires_at ||
+                                svc.promotion_expires_at >= new Date().toISOString().slice(0, 10))
+                              ? svc.promotional_price
+                              : svc.base_price,
+                          )}
                     </span>
                   </div>
                   <Link
@@ -253,22 +224,9 @@ export default async function HomePage() {
           </p>
 
           <div className="flex flex-wrap justify-center gap-2 max-w-4xl mx-auto">
-            {[
-              'Airport Residential Area',
-              'Cantonments',
-              'East Legon',
-              'Spintex Road',
-              'Osu',
-              'Dzorwulu',
-              'Ridge',
-              'Labone',
-              'Tema (Comm. 1 - 25)',
-              'Sakumono',
-              'Adenta',
-              'Achimota',
-              'Madina',
-              'North Legon',
-            ].map((area) => (
+            {(areas.length ? areas.map((area) => `${area.name}, ${area.region}`) : [
+
+            ]).map((area) => (
               <span
                 key={area}
                 className="px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold"
@@ -284,12 +242,24 @@ export default async function HomePage() {
       <footer className="mt-auto bg-slate-900 text-slate-400 py-12 px-4 sm:px-8 border-t border-slate-800 text-xs">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
-              <Sparkles className="w-5 h-5" />
-            </div>
+            {settings?.logo_url ? (
+              <img
+                src={settings.logo_url}
+                alt={settings?.company_name || 'Company logo'}
+                className="h-8 w-8 max-h-8 max-w-8 shrink-0 rounded-lg bg-white p-0.5 object-contain"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+                <Sparkles className="w-5 h-5" />
+              </div>
+            )}
             <div>
-              <p className="font-bold text-white text-sm">DAYDAY SPARKLE AND SHINE CLEANING SERVICE</p>
-              <p className="text-blue-400 font-medium italic">“Satisfaction Guaranteed.”</p>
+              <p className="font-bold text-white text-sm">
+                {settings?.company_name || ''}
+              </p>
+              <p className="text-blue-400 font-medium italic">
+                {settings?.homepage_footer || settings?.tagline || ''}
+              </p>
             </div>
           </div>
 
@@ -306,7 +276,7 @@ export default async function HomePage() {
           </div>
 
           <div>
-            &copy; {new Date().getFullYear()} DAYDAY Management System. Ghana.
+            &copy; {new Date().getFullYear()} {settings?.company_name || ''}. Ghana.
           </div>
         </div>
       </footer>
