@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Lock, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
+import Brand from '@/components/branding/Brand';
 import { createClient } from '@/lib/supabase/client';
 
 export default function UpdatePasswordPage() {
@@ -54,15 +55,10 @@ export default function UpdatePasswordPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/30 mb-3">
-          <Sparkles className="w-8 h-8" />
-        </div>
+        <Brand className="inline-flex flex-col gap-2 mb-3" iconClassName="h-14 w-14 rounded-2xl" nameClassName="hidden" />
         <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
           Set New Password
         </h2>
-        <p className="mt-1 text-xs font-semibold text-blue-600 uppercase tracking-wider">
-          DAYDAY SPARKLE AND SHINE CLEANING SERVICE
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

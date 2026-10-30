@@ -27,9 +27,9 @@ function NewInvoiceContent() {
   );
   const [discountAmount, setDiscountAmount] = useState('0');
   const [paymentInstructions, setPaymentInstructions] = useState(
-    'Payment via Mobile Money to 0245558899 (MTN - DAYDAY SPARKLE AND SHINE) or bank transfer to Ecobank Ghana (A/C: 1441002233445).'
+    ''
   );
-  const [notes, setNotes] = useState('Satisfaction Guaranteed.');
+  const [notes, setNotes] = useState('');
 
   const [items, setItems] = useState<LineItem[]>([
     { description: 'Residential Deep Cleaning Service', quantity: 1, unit_price: 350 },

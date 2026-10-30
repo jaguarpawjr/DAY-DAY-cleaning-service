@@ -18,10 +18,10 @@ import {
   Briefcase,
   CheckCircle,
   Clock,
-  Sparkles,
 } from 'lucide-react';
 import { Profile, Notification } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
+import { CompanySettings } from '@/types/database';
 
 interface HeaderProps {
   profile: Profile | null;
@@ -38,8 +38,13 @@ export default function Header({ profile, onOpenSidebar }: HeaderProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [settings, setSettings] = useState<Pick<CompanySettings, 'company_name' | 'tagline'> | null>(null);
 
   // Load notifications
+  useEffect(() => {
+    supabase.from('company_settings').select('company_name, tagline').maybeSingle().then(({ data }) => setSettings(data));
+  }, [supabase]);
+
   useEffect(() => {
     async function loadNotifications() {
       try {
@@ -93,11 +98,11 @@ export default function Header({ profile, onOpenSidebar }: HeaderProps) {
         <div className="hidden sm:block">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              DAYDAY SPARKLE & SHINE
+              {settings?.company_name || ''}
             </span>
             <span className="text-[10px] text-slate-400">•</span>
             <span className="text-xs text-blue-600 font-semibold italic">
-              “Satisfaction Guaranteed.”
+              {settings?.tagline || ''}
             </span>
           </div>
           <p className="text-[11px] text-slate-500 mt-0.5">

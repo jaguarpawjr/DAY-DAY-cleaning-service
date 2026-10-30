@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { notifyJobScheduled, notifyJobCompleted } from '@/lib/notifications';
 
 export async function POST(request: Request) {
   try {
@@ -8,6 +9,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       job_id,
+      client_id,
+      service_id,
+      scheduled_date,
+      scheduled_start_time,
+      location,
+      agreed_price,
+      materials_required,
+      assigned_employee_ids,
       status,
       actual_materials_used,
       completion_notes,
@@ -56,6 +65,18 @@ export async function POST(request: Request) {
     if (completion_notes !== undefined) updates.completion_notes = completion_notes;
     if (customer_feedback !== undefined) updates.customer_feedback = customer_feedback;
     if (customer_rating !== undefined) updates.customer_rating = customer_rating;
+    if (profile.role === 'admin') {
+      if (client_id !== undefined) updates.client_id = client_id;
+      if (service_id !== undefined) updates.service_id = service_id;
+      if (scheduled_date !== undefined) updates.scheduled_date = scheduled_date;
+      if (scheduled_start_time !== undefined) updates.scheduled_start_time = scheduled_start_time;
+      if (location !== undefined) updates.location = location;
+      if (agreed_price !== undefined) {
+        updates.agreed_price = Number(agreed_price);
+        updates.estimated_cost = Math.round(Number(agreed_price) * 0.4);
+      }
+      if (materials_required !== undefined) updates.materials_required = materials_required;
+    }
 
     // Update job
     const { data: updatedJob, error: updateErr } = await adminClient
@@ -66,6 +87,26 @@ export async function POST(request: Request) {
       .single();
 
     if (updateErr) throw updateErr;
+
+    if (profile.role === 'admin' && Array.isArray(assigned_employee_ids)) {
+      const { error: deleteWorkersError } = await adminClient
+        .from('job_workers')
+        .delete()
+        .eq('job_id', job_id);
+      if (deleteWorkersError) throw deleteWorkersError;
+
+      if (assigned_employee_ids.length > 0) {
+        const { error: insertWorkersError } = await adminClient.from('job_workers').insert(
+          assigned_employee_ids.map((employee_id: string) => ({
+            job_id,
+            employee_id,
+            role: 'cleaner',
+          }))
+        );
+        if (insertWorkersError) throw insertWorkersError;
+      }
+
+    }
 
     // If a photo was attached
     if (photo_url && photo_type) {
@@ -78,14 +119,40 @@ export async function POST(request: Request) {
       });
     }
 
-    // If job was completed and status transitioned to completed, notify admin
-    if (status === 'completed') {
-      await adminClient.from('notifications').insert({
-        title: `Job Completed: ${updatedJob.job_number}`,
-        message: `Cleaning crew completed job ${updatedJob.job_number} at ${updatedJob.location}. Ready for review or billing.`,
-        type: 'success',
-        link: `/jobs/${job_id}`,
-      });
+    // Fetch client and service details for customer notifications
+    try {
+      const { data: jobWithDetails } = await adminClient
+        .from('jobs')
+        .select('*, client:clients(*), service:services(*)')
+        .eq('id', job_id)
+        .single();
+
+      if (status === 'completed') {
+        await notifyJobCompleted({
+          jobId: job_id,
+          jobNumber: updatedJob.job_number,
+          clientName: jobWithDetails?.client?.name || 'Valued Customer',
+          clientEmail: jobWithDetails?.client?.email || null,
+          clientPhone: jobWithDetails?.client?.phone || null,
+          serviceName: jobWithDetails?.service?.name || 'Cleaning Service',
+          location: updatedJob.location,
+          completionNotes: completion_notes || null,
+        });
+      } else if (status === 'scheduled' || status === 'assigned' || scheduled_date !== undefined) {
+        await notifyJobScheduled({
+          jobNumber: updatedJob.job_number,
+          clientName: jobWithDetails?.client?.name || 'Valued Customer',
+          clientEmail: jobWithDetails?.client?.email || null,
+          clientPhone: jobWithDetails?.client?.phone || null,
+          serviceName: jobWithDetails?.service?.name || 'Cleaning Service',
+          scheduledDate: updatedJob.scheduled_date,
+          scheduledStartTime: updatedJob.scheduled_start_time,
+          location: updatedJob.location,
+          crewCount: Array.isArray(assigned_employee_ids) ? assigned_employee_ids.length : undefined,
+        });
+      }
+    } catch (notifyError) {
+      console.warn('Job notification dispatch warning:', notifyError);
     }
 
     return NextResponse.json({ success: true, job: updatedJob });

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -34,8 +35,20 @@ export async function GET() {
     const client = createAdminClient();
 
     const [draftRes, publishedRes] = await Promise.all([
-      client.from('homepage_revisions').select('*').eq('status', 'draft').maybeSingle(),
-      client.from('homepage_revisions').select('*').eq('status', 'published').maybeSingle(),
+      client
+        .from('homepage_revisions')
+        .select('*')
+        .eq('status', 'draft')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      client
+        .from('homepage_revisions')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     return NextResponse.json({
@@ -161,6 +174,7 @@ export async function POST(request: Request) {
     if (settingsResult.error) throw settingsResult.error;
 
     // Apply Services
+    const publishedServiceIds: string[] = [];
     for (const [index, service] of services.entries()) {
       if (!service.name?.trim()) continue;
       const payload = {
@@ -174,15 +188,32 @@ export async function POST(request: Request) {
         updated_at: new Date().toISOString(),
       };
       const result = service.id
-        ? await client.from('services').update(payload).eq('id', service.id)
+        ? await client.from('services').update(payload).eq('id', service.id).select('id').single()
         : await client.from('services').insert({
             ...payload,
             slug: `${payload.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${crypto.randomUUID().slice(0, 8)}`,
-          });
+          }).select('id').single();
       if (result.error) throw result.error;
+      if (result.data?.id) publishedServiceIds.push(result.data.id);
+    }
+
+    // Keep removed services available for historical bookings, but hide them from the homepage.
+    if (publishedServiceIds.length > 0) {
+      const { error: deactivateServicesError } = await client
+        .from('services')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .not('id', 'in', `(${publishedServiceIds.join(',')})`);
+      if (deactivateServicesError) throw deactivateServicesError;
+    } else {
+      const { error: deactivateServicesError } = await client
+        .from('services')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      if (deactivateServicesError) throw deactivateServicesError;
     }
 
     // Apply Service Areas with available_service_ids
+    const publishedAreaIds: string[] = [];
     for (const [index, area] of areas.entries()) {
       if (!area.name?.trim() || !area.region?.trim()) continue;
       const payload = {
@@ -195,9 +226,24 @@ export async function POST(request: Request) {
         updated_at: new Date().toISOString(),
       };
       const result = area.id
-        ? await client.from('service_areas').update(payload).eq('id', area.id)
-        : await client.from('service_areas').insert(payload);
+        ? await client.from('service_areas').update(payload).eq('id', area.id).select('id').single()
+        : await client.from('service_areas').insert(payload).select('id').single();
       if (result.error) throw result.error;
+      if (result.data?.id) publishedAreaIds.push(result.data.id);
+    }
+
+    if (publishedAreaIds.length > 0) {
+      const { error: deactivateAreasError } = await client
+        .from('service_areas')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .not('id', 'in', `(${publishedAreaIds.join(',')})`);
+      if (deactivateAreasError) throw deactivateAreasError;
+    } else {
+      const { error: deactivateAreasError } = await client
+        .from('service_areas')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      if (deactivateAreasError) throw deactivateAreasError;
     }
 
     // Archive previous published revision
@@ -216,8 +262,8 @@ export async function POST(request: Request) {
       revision_number: (count || 0) + 1,
       status: 'published',
       company_settings: settingsPayload,
-      service_ids: services.map((s) => s.id).filter(Boolean),
-      service_area_ids: areas.map((a) => a.id).filter(Boolean),
+      service_ids: publishedServiceIds,
+      service_area_ids: publishedAreaIds,
       draft_snapshot: null,
       edited_by: admin.id,
       published_by: admin.id,
@@ -232,6 +278,7 @@ export async function POST(request: Request) {
       new_data: { services: services.length, areas: areas.length },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, action: 'publish' });
   } catch (error: any) {
     console.error('Homepage settings error:', error);

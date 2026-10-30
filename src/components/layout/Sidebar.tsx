@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -16,13 +16,13 @@ import {
   BarChart3,
   Settings,
   MessageSquareWarning,
-  Sparkles,
   Shield,
   User,
   ChevronRight,
   Globe,
 } from 'lucide-react';
-import { Profile } from '@/types/database';
+import { CompanySettings, Profile } from '@/types/database';
+import { createClient } from '@/lib/supabase/client';
 
 interface SidebarProps {
   profile: Profile | null;
@@ -33,6 +33,16 @@ interface SidebarProps {
 export default function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const isAdmin = profile?.role === 'admin';
+  const [settings, setSettings] = useState<Pick<CompanySettings, 'company_name' | 'tagline' | 'logo_url'> | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from('company_settings')
+      .select('company_name, tagline, logo_url')
+      .maybeSingle()
+      .then(({ data }) => setSettings(data));
+  }, []);
 
   const adminNavSections = [
     {
@@ -48,7 +58,6 @@ export default function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
       title: 'Finance & Accounting',
       items: [
         { name: 'Invoices & Billing', href: '/invoices', icon: FileText },
-        { name: 'Payments & Paystack', href: '/payments', icon: CreditCard },
         { name: 'Expenses', href: '/expenses', icon: TrendingUp },
         { name: 'Financial Ledger', href: '/finance/ledger', icon: TrendingUp },
         { name: 'Profit & Loss', href: '/finance/pnl', icon: Banknote },
@@ -107,15 +116,19 @@ export default function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
         {/* Brand Header */}
         <div className="h-20 px-6 border-b border-slate-100 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/30">
-              <Sparkles className="w-6 h-6" />
-            </div>
+            {settings?.logo_url ? (
+              <img src={settings.logo_url} alt={settings.company_name || 'Company logo'} className="h-10 w-10 max-h-10 max-w-10 shrink-0 rounded-xl border border-slate-200 bg-white p-0.5 object-contain shadow-sm" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xs font-extrabold shadow-md shadow-blue-500/30">
+                {(settings?.company_name || '').split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}
+              </div>
+            )}
             <div>
               <h1 className="font-extrabold text-sm text-slate-900 leading-tight">
-                DAYDAY
+                {settings?.company_name || ''}
               </h1>
               <p className="text-[10px] font-semibold text-blue-600 tracking-wider">
-                SPARKLE & SHINE
+                {settings?.tagline || ''}
               </p>
             </div>
           </Link>
@@ -132,7 +145,7 @@ export default function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
         <div className="px-6 py-2.5 bg-blue-50/70 border-b border-blue-100/50 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
           <span className="text-[11px] font-medium text-blue-800 italic">
-            “Satisfaction Guaranteed.”
+            {settings?.tagline || ''}
           </span>
         </div>
 

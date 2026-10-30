@@ -338,7 +338,7 @@ export default function HomepageSettingsClient({
                   <img
                     src={form.logo_url}
                     alt="Company logo preview"
-                    className="h-20 w-20 rounded-2xl object-contain bg-white border border-slate-200 p-1 shadow-sm"
+                    className="h-20 w-20 max-h-20 max-w-20 shrink-0 rounded-2xl border border-slate-200 bg-white p-1 object-contain shadow-sm"
                   />
                   <button
                     type="button"
@@ -359,7 +359,7 @@ export default function HomepageSettingsClient({
                 <input
                   ref={logoInputRef}
                   type="file"
-                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  accept="image/png,image/jpeg,image/webp"
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -376,7 +376,7 @@ export default function HomepageSettingsClient({
                   <span>{uploadingLogo ? 'Uploading to Supabase...' : form.logo_url ? 'Replace Logo' : 'Upload Brand Logo'}</span>
                 </button>
                 <p className="text-[11px] text-slate-500">
-                  JPEG, PNG, WEBP, or SVG up to 5MB. Hosted in public Supabase Storage.
+                  JPEG, PNG, or WEBP up to 5MB. Recommended: at least 512 x 512 px, square (1:1) or horizontal up to 3:1. Hosted in public Supabase Storage.
                 </p>
               </div>
             </div>
@@ -554,6 +554,7 @@ export default function HomepageSettingsClient({
                       />
                     </label>
                   </div>
+                  <p className="mt-1 text-[10px] leading-4 text-slate-400">JPEG, PNG, or WEBP up to 5MB. Recommended: 1200 x 800 px landscape (3:2) for the service card.</p>
                 </div>
               </div>
             </div>

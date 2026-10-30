@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CreditCard, CheckCircle2, Clock, DollarSign, FileText } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Payment } from '@/types/database';
+import VerifyPaystackButton from './VerifyPaystackButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,16 +115,23 @@ export default async function PaymentsPage() {
                         {formatCurrency(p.amount)}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold capitalize ${
-                            p.status === 'verified'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          {p.status.replace('_', ' ')}
-                        </span>
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold capitalize ${
+                              p.status === 'verified'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            {p.status.replace('_', ' ')}
+                          </span>
+                          {p.payment_method === 'paystack' && p.status !== 'verified' && (p as Payment & { paystack_reference?: string }).paystack_reference && (
+                            <VerifyPaystackButton
+                              reference={(p as Payment & { paystack_reference: string }).paystack_reference}
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

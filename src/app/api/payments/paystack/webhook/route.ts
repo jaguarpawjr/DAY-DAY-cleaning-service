@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { notifyPaymentReceived } from '@/lib/notifications';
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
     if (event.event === 'charge.success' && event.data?.reference) {
       const { data: payment, error: paymentError } = await adminClient
         .from('payments')
-        .select('id, status')
+        .select('id, payment_ref, amount, status, invoice_id, client_id, client:clients(name, email, phone), invoice:invoices(invoice_number, balance_due)')
         .eq('paystack_reference', event.data.reference)
         .maybeSingle();
 
@@ -111,6 +112,27 @@ export async function POST(request: Request) {
             reference: event.data.reference,
             payment_id: payment.id,
           });
+        }
+
+        // Notify customer and alert admin of successful payment
+        try {
+          const clientObj = Array.isArray(payment.client) ? payment.client[0] : payment.client;
+          const invoiceObj = Array.isArray(payment.invoice) ? payment.invoice[0] : payment.invoice;
+
+          await notifyPaymentReceived({
+            paymentRef: payment.payment_ref || `PAY-${event.data.reference}`,
+            amount: totalAmount,
+            paymentMethod: 'paystack',
+            referenceNumber: event.data.reference,
+            customerName: clientObj?.name || 'Valued Customer',
+            customerEmail: clientObj?.email || null,
+            customerPhone: clientObj?.phone || null,
+            invoiceNumber: invoiceObj?.invoice_number || null,
+            invoiceId: payment.invoice_id || null,
+            balanceDue: invoiceObj?.balance_due !== undefined ? Math.max(0, Number(invoiceObj.balance_due) - totalAmount) : null,
+          });
+        } catch (webhookNotifErr) {
+          console.warn('Paystack webhook payment notification warning:', webhookNotifErr);
         }
       }
     }

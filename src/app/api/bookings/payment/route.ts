@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { notifyPaymentReceived } from '@/lib/notifications';
 
 const paymentMethods = ['momo', 'bank_transfer'] as const;
 
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
 
     const { data: existingInvoice, error: invoiceLookupError } = await adminClient
       .from('invoices')
-      .select('id, total_amount, balance_due')
+      .select('id, invoice_number, total_amount, balance_due')
       .eq('booking_id', booking.id)
       .maybeSingle();
     if (invoiceLookupError) throw invoiceLookupError;
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
           status: 'sent',
           payment_instructions: 'Payment via Mobile Money to 0245558899 (MTN) or Ecobank Ghana transfer.',
         })
-        .select('id, total_amount, balance_due')
+        .select('id, invoice_number, total_amount, balance_due')
         .single();
       if (invoiceError) throw invoiceError;
       invoice = newInvoice;
@@ -126,6 +127,23 @@ export async function POST(request: Request) {
       .select('payment_ref, amount, payment_method, reference_number, status')
       .single();
     if (paymentError) throw paymentError;
+
+    try {
+      await notifyPaymentReceived({
+        paymentRef: payment.payment_ref,
+        amount: Number(payment.amount),
+        paymentMethod: payment.payment_method,
+        referenceNumber: payment.reference_number,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        customerPhone: booking.customer_phone,
+        invoiceNumber: invoice?.invoice_number || null,
+        invoiceId: invoice?.id || null,
+        balanceDue: Number(invoice.balance_due) - Number(payment.amount),
+      });
+    } catch (notifErr) {
+      console.warn('Booking payment notification warning:', notifErr);
+    }
 
     return NextResponse.json({
       success: true,

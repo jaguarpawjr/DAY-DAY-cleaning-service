@@ -196,7 +196,7 @@ export default function DashboardClient({ profile, initialData }: DashboardClien
                 Welcome, {profile.full_name}!
               </h1>
               <p className="text-blue-100 text-sm mt-1">
-                Your assigned cleaning schedule and daily tasks. “Satisfaction Guaranteed.”
+                Your assigned cleaning schedule and daily tasks.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">

@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import {
+  notifyBookingApproved,
+  notifyBookingRejected,
+  notifyJobScheduled,
+} from '@/lib/notifications';
 
 export async function POST(request: Request) {
   try {
@@ -122,12 +127,57 @@ export async function POST(request: Request) {
         new_data: { booking_ref: booking.booking_ref, job_number: jobNumber },
       });
 
+      // 8. Notify Customer & Schedule Alerts
+      try {
+        await notifyBookingApproved({
+          id: booking.id,
+          booking_ref: booking.booking_ref,
+          customer_name: booking.customer_name,
+          customer_email: booking.customer_email,
+          customer_phone: booking.customer_phone,
+          preferred_date: booking.preferred_date,
+          service_address: booking.service_address,
+          quoted_price: finalPrice,
+          service: booking.service,
+        });
+
+        await notifyJobScheduled({
+          jobNumber: jobNumber,
+          clientName: booking.customer_name,
+          clientEmail: booking.customer_email,
+          clientPhone: booking.customer_phone,
+          serviceName: booking.service?.name || 'Cleaning Service',
+          scheduledDate: booking.preferred_date,
+          scheduledStartTime: startTime,
+          location: booking.service_address,
+          crewCount: assigned_employee_ids?.length || 0,
+        });
+      } catch (notifyErr) {
+        console.warn('Booking approval notification warning:', notifyErr);
+      }
+
       return NextResponse.json({ success: true, job_id: job.id, job_number: jobNumber });
     } else if (action === 'reject' || action === 'cancel') {
       await adminClient
         .from('bookings')
         .update({ status: action === 'reject' ? 'rejected' : 'cancelled' })
         .eq('id', booking.id);
+
+      if (action === 'reject') {
+        try {
+          await notifyBookingRejected({
+            id: booking.id,
+            booking_ref: booking.booking_ref,
+            customer_name: booking.customer_name,
+            customer_email: booking.customer_email,
+            customer_phone: booking.customer_phone,
+            preferred_date: booking.preferred_date,
+            service: booking.service,
+          });
+        } catch (rejectNotifyErr) {
+          console.warn('Booking rejection notification warning:', rejectNotifyErr);
+        }
+      }
 
       return NextResponse.json({ success: true, status: action });
     }

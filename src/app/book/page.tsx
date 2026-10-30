@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Sparkles,
   Calendar,
   Clock,
   MapPin,
@@ -19,6 +18,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { formatCurrency } from '@/lib/utils';
 import { Service } from '@/types/database';
+import Brand from '@/components/branding/Brand';
 
 function BookingPortalContent() {
   const router = useRouter();
@@ -129,20 +129,13 @@ function BookingPortalContent() {
     <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
       {/* Top Header */}
       <div className="max-w-4xl mx-auto mb-8 text-center">
-        <Link href="/" className="inline-flex items-center gap-2 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md">
-            <Sparkles className="w-6 h-6" />
-          </div>
-          <span className="font-extrabold text-slate-900 tracking-tight text-lg">
-            DAYDAY SPARKLE & SHINE
-          </span>
+        <Link href="/" className="inline-flex mb-3">
+          <Brand />
         </Link>
         <h1 className="text-3xl font-extrabold text-slate-900">
           Book a Professional Cleaning Service
         </h1>
-        <p className="text-sm text-blue-600 font-semibold mt-1">
-          “Satisfaction Guaranteed.” • Ghana Cedis (GH₵)
-        </p>
+        <p className="text-sm text-blue-600 font-semibold mt-1">Ghana Cedis (GH₵)</p>
       </div>
 
       <div className="max-w-4xl mx-auto">
@@ -158,7 +151,7 @@ function BookingPortalContent() {
                 Booking Request Received!
               </h2>
               <p className="text-slate-600 text-sm mt-1">
-                Thank you for choosing DAYDAY SPARKLE AND SHINE. Our operations team is reviewing your schedule.
+                Thank you for choosing our cleaning service. Our operations team is reviewing your schedule.
               </p>
             </div>
 

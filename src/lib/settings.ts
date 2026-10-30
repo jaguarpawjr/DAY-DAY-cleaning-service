@@ -1,0 +1,1 @@
+// src/lib/settings.ts - Utility to fetch company settings from Supabase (client-side and server-side helpers) and provide TypeScript types. This centralizes the settings fetch logic for reuse across the app. It also supplies sensible fallbacks when the DB entry is missing, avoiding hard‑coded literals scattered throughout the codebase.

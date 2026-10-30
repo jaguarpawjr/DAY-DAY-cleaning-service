@@ -16,14 +16,14 @@ export default function SettingsClient({ initialSettings }: { initialSettings: C
   const [taxRate, setTaxRate] = useState(String(initialSettings.tax_rate_percent || '0'));
 
   // Mobile Money
-  const [momoName, setMomoName] = useState(initialSettings.momo_account_name || 'DAYDAY SPARKLE AND SHINE');
+  const [momoName, setMomoName] = useState(initialSettings.momo_account_name || '');
   const [momoNumber, setMomoNumber] = useState(initialSettings.momo_account_number || '0245558899');
   const [momoNetwork, setMomoNetwork] = useState(initialSettings.momo_network || 'MTN Mobile Money');
 
   // Bank
   const [bankName, setBankName] = useState(initialSettings.bank_name || 'Ecobank Ghana');
   const [bankAccountName, setBankAccountName] = useState(
-    initialSettings.bank_account_name || 'DAYDAY SPARKLE AND SHINE CLEANING SERVICE'
+    initialSettings.bank_account_name || ''
   );
   const [bankAccountNumber, setBankAccountNumber] = useState(
     initialSettings.bank_account_number || '1441002233445'

@@ -54,7 +54,7 @@ export default async function ComplaintsPage() {
           {complaints.length === 0 ? (
             <div className="p-12 text-center text-xs text-slate-400">
               <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
-              No open customer complaints. 100% Satisfaction Guaranteed.
+              No open customer complaints.
             </div>
           ) : (
             <div className="overflow-x-auto">

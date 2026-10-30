@@ -30,7 +30,7 @@ body {
   background: #94a3b8;
 }
 
-/* Print layout optimizations for Invoices and Payslips */
+/* Print layout optimizations for other printable documents */
 @media print {
   .no-print {
     display: none !important;
